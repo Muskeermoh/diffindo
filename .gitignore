@@ -1,0 +1,12 @@
+# Ignore Composer dependencies
+vendor/
+
+# Ignore environment files
+.env
+
+# Ignore node modules (if any)
+node_modules/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

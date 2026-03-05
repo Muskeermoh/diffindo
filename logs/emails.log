@@ -1,0 +1,122 @@
+=== EMAIL SENT ===
+Time: 2025-10-25 07:43:10
+To: Muskeer08@gmail.com
+Subject: Order Confirmed - Diffindo Cakes & Bakes (Order #1)
+Content: 
+
+                <h2>Order Confirmed!</h2>
+                <p>Dear Mohamed Muskeer,</p>
+                <p>Great news! Your order #1 has been confirmed and we're preparing your delicious cakes.</p>
+                <p>We'll have your order ready for delivery at the scheduled time.</p>
+                <p>Thank you for choosing Diffindo Cakes & Bakes!</p>
+                <p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+            
+=================
+
+=== EMAIL SENT ===
+Time: 2025-10-25 07:43:15
+To: Muskeer08@gmail.com
+Subject: Order Confirmed - Diffindo Cakes & Bakes (Order #1)
+Content: 
+
+                <h2>Order Confirmed!</h2>
+                <p>Dear Mohamed Muskeer,</p>
+                <p>Great news! Your order #1 has been confirmed and we're preparing your delicious cakes.</p>
+                <p>We'll have your order ready for delivery at the scheduled time.</p>
+                <p>Thank you for choosing Diffindo Cakes & Bakes!</p>
+                <p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+            
+=================
+
+=== EMAIL SENT ===
+Time: 2025-10-25 07:45:29
+To: Muskeer08@gmail.com
+Subject: Order Confirmation - Diffindo Cakes & Bakes (Order #2)
+Content: 
+
+                <h2>Order Placed Successfully!</h2>
+                <p>Dear Mohamed Muskeer,</p>
+                <p>Thank you for your order. Your order #2 has been received and is being processed.</p>
+                <p><strong>Order Details:</strong></p>
+                <ul>
+            <li> x 1 - Rs 2,000</li>
+                </ul>
+                <p><strong>Total: Rs 2,000</strong></p>
+                <p><strong>Delivery Date:</strong> Oct 31, 2025 5:15 PM</p>
+                <p>We'll notify you once your order is confirmed.</p>
+                <p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+            
+=================
+
+=== EMAIL SENT ===
+Time: 2025-10-25 07:45:59
+To: Muskeer08@gmail.com
+Subject: Order Confirmed - Diffindo Cakes & Bakes (Order #2)
+Content: 
+
+                <h2>Order Confirmed!</h2>
+                <p>Dear Mohamed Muskeer,</p>
+                <p>Great news! Your order #2 has been confirmed and we're preparing your delicious cakes.</p>
+                <p>We'll have your order ready for delivery at the scheduled time.</p>
+                <p>Thank you for choosing Diffindo Cakes & Bakes!</p>
+                <p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+            
+=================
+
+=== EMAIL SENT ===
+Time: 2025-10-25 07:47:12
+To: Muskeer08@gmail.com
+Subject: Order Confirmed - Diffindo Cakes & Bakes (Order #2)
+Content: 
+
+                <h2>Order Confirmed!</h2>
+                <p>Dear Mohamed Muskeer,</p>
+                <p>Great news! Your order #2 has been confirmed and we're preparing your delicious cakes.</p>
+                <p>We'll have your order ready for delivery at the scheduled time.</p>
+                <p>Thank you for choosing Diffindo Cakes & Bakes!</p>
+                <p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+            
+=================
+
+=== EMAIL SENT ===
+Time: 2025-10-25 07:51:28
+To: Muskeer08@gmail.com
+Subject: Order Confirmed - Diffindo Cakes & Bakes (Order #2)
+Content: 
+
+                <h2>Order Confirmed!</h2>
+                <p>Dear Mohamed Muskeer,</p>
+                <p>Great news! Your order #2 has been confirmed and we're preparing your delicious cakes.</p>
+                <p>We'll have your order ready for delivery at the scheduled time.</p>
+                <p>Thank you for choosing Diffindo Cakes & Bakes!</p>
+                <p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+            
+=================
+
+[2025-10-27 11:25:43] SUCCESS: Sent test to youremail@example.com
+[2025-10-27 11:26:25] SUCCESS: Sent test to muskeer08@gmail.com
+[2025-10-27 11:31:37] SUCCESS: Sent test to diffindocakes@gmail.com
+=== EMAIL FAILED (SMTP) ===
+Time: 2025-11-10 15:52:03
+To: Muskeer08@gmail.com
+Subject: Order Confirmation - Diffindo Cakes & Bakes (Order #11)
+Content:
+<h2>Order Placed Successfully!</h2>
+<p>Dear Mohamed Muskeer,</p>
+<p>Thank you for your order. Your order #11 has been received and is being processed.</p>
+<p><strong>Order Details:</strong></p><ul><li>Brownie x 1 - Rs 1,500</li></ul>
+<p><strong>Total: Rs 1,500</strong></p>
+<p><strong>Delivery Date:</strong> Nov 29, 2025 3:21 PM</p>
+<p>We'll notify you once your order is confirmed.</p>
+<p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+
+=== EMAIL FAILED (SMTP) ===
+Time: 2025-11-10 15:53:23
+To: Muskeer08@gmail.com
+Subject: Order Confirmed - Diffindo Cakes & Bakes (Order #11)
+Content:
+<h2>Order Confirmed!</h2>
+<p>Dear Mohamed Muskeer,</p>
+<p>Your order #11 has been confirmed.</p>
+<p>Best regards,<br>Diffindo Cakes & Bakes Team</p>
+
