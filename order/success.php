@@ -53,5 +53,4 @@ try {
 <p>Your order has been placed successfully.</p>
 
 <p><b>Order ID:</b> <?= $order_id ?></p>
-
 <a href="../index.php">Back to Home</a>
