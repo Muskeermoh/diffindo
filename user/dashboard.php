@@ -169,24 +169,30 @@ $orders = $stmt->fetchAll();
                             <?php foreach (array_slice($orders, 0, 10) as $order): ?>
                                 <tr>
                                     <td class="px-6 py-4 text-sm font-medium text-gray-900">#<?= $order['id'] ?></td>
-                                    <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($order['items']) ?></td>
+                                    <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($order['items'] ?: 'No items') ?></td>
                                     <td class="px-6 py-4 text-sm text-gray-900">Rs <?= number_format($order['total']) ?></td>
                                     <td class="px-6 py-4 text-sm text-gray-500">
-                                        <?= date('M j, Y g:i A', strtotime($order['delivery_datetime'])) ?>
+                                        <?= $order['delivery_datetime'] 
+    ? date('M j, Y g:i A', strtotime($order['delivery_datetime'])) 
+    : 'Not scheduled' ?>
                                     </td>
                                     <td class="px-6 py-4">
                                         <?php
-                                        $statusColors = [
-                                            'pending' => 'bg-yellow-100 text-yellow-800',
-                                            'accepted' => 'bg-green-100 text-green-800',
-                                            'delivered' => 'bg-blue-100 text-blue-800',
-                                            'rejected' => 'bg-red-100 text-red-800',
-                                            'cancelled' => 'bg-gray-100 text-gray-800'
-                                        ];
-                                        ?>
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $statusColors[$order['status']] ?>">
-                                            <?= ucfirst($order['status']) ?>
-                                        </span>
+$statusColors = [
+    'pending' => 'bg-yellow-100 text-yellow-800',
+    'accepted' => 'bg-green-100 text-green-800',
+    'delivered' => 'bg-blue-100 text-blue-800',
+    'rejected' => 'bg-red-100 text-red-800',
+    'cancelled' => 'bg-gray-100 text-gray-800'
+];
+
+$status = $order['status'] ?? 'pending';
+$color = $statusColors[$status] ?? 'bg-gray-100 text-gray-800';
+?>
+
+<span class="px-2 py-1 text-xs font-semibold rounded-full <?= $color ?>">
+    <?= ucfirst($status) ?>
+</span>
                                     </td>
                                     <td class="px-6 py-4 text-sm">
                                         <?php if ($order['status'] === 'pending'): ?>

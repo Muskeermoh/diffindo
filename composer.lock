@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "41da4c5b364c14e0c79f3f6a4ee31ec6",
+    "content-hash": "829a2af8fe3782fe204061005858bec2",
     "packages": [
         {
             "name": "phpmailer/phpmailer",
@@ -90,16 +90,16 @@
         },
         {
             "name": "stripe/stripe-php",
-            "version": "v9.0.0",
+            "version": "v19.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/stripe/stripe-php.git",
-                "reference": "e405c178c2167f568e654296ad6b20eb461761b5"
+                "reference": "095384404587d07de2ad1154c389c4051c5ed92f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/e405c178c2167f568e654296ad6b20eb461761b5",
-                "reference": "e405c178c2167f568e654296ad6b20eb461761b5",
+                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/095384404587d07de2ad1154c389c4051c5ed92f",
+                "reference": "095384404587d07de2ad1154c389c4051c5ed92f",
                 "shasum": ""
             },
             "require": {
@@ -109,10 +109,9 @@
                 "php": ">=5.6.0"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "3.5.0",
+                "friendsofphp/php-cs-fixer": "3.94.0",
                 "phpstan/phpstan": "^1.2",
-                "phpunit/phpunit": "^5.7 || ^9.0",
-                "squizlabs/php_codesniffer": "^3.3"
+                "phpunit/phpunit": "^5.7 || ^9.0"
             },
             "type": "library",
             "extra": {
@@ -144,9 +143,9 @@
             ],
             "support": {
                 "issues": "https://github.com/stripe/stripe-php/issues",
-                "source": "https://github.com/stripe/stripe-php/tree/v9.0.0"
+                "source": "https://github.com/stripe/stripe-php/tree/v19.4.1"
             },
-            "time": "2022-08-02T15:47:44+00:00"
+            "time": "2026-03-06T22:53:13+00:00"
         }
     ],
     "packages-dev": [],
@@ -157,5 +156,5 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

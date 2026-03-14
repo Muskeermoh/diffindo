@@ -15,39 +15,53 @@ $error = '';
 $order_id = null;
 $payment_intent = null;
 
+<<<<<<< HEAD
 // Step 1: Create temporary order (before payment)
 if ($_POST && isset($_POST['place_order'])) {
     $delivery_datetime = $_POST['delivery_datetime'];
     $notes = trim($_POST['notes'] ?? '');
+=======
+// if ($_POST && isset($_POST['place_order'])) {
+//     $delivery_datetime = $_POST['delivery_datetime'];
+//     $notes = trim($_POST['notes'] ?? '');
+>>>>>>> 4023996 (added the payment getway to stripe)
     
-    // Validation
-    if (empty($delivery_datetime)) {
-        $error = 'Please select a delivery date and time';
-    } elseif (strtotime($delivery_datetime) <= time()) {
-        $error = 'Delivery date must be in the future';
-    } else {
-        try {
-            $pdo->beginTransaction();
+//     // Validation
+//     if (empty($delivery_datetime)) {
+//         $error = 'Please select a delivery date and time';
+//     } elseif (strtotime($delivery_datetime) <= time()) {
+//         $error = 'Delivery date must be in the future';
+//     } else {
+//         try {
+//             $pdo->beginTransaction();
             
-            // Calculate total
-            $total = 0;
-            foreach ($_SESSION['cart'] as $item) {
-                $total += $item['price'] * $item['quantity'];
-            }
+//             // Calculate total
+//             $total = 0;
+//             foreach ($_SESSION['cart'] as $item) {
+//                 $total += $item['price'] * $item['quantity'];
+//             }
             
+<<<<<<< HEAD
             // Create order with payment_status = 'pending'
             $stmt = $pdo->prepare("INSERT INTO orders (user_id, delivery_datetime, total, status, payment_status) VALUES (?, ?, ?, 'pending', 'pending')");
             $stmt->execute([$_SESSION['user']['id'], $delivery_datetime, $total]);
             $order_id = $pdo->lastInsertId();
+=======
+//             // Create order
+//             $stmt = $pdo->prepare("INSERT INTO orders (user_id, delivery_datetime, total, status) VALUES (?, ?, ?, 'pending')");
+//             $stmt->execute([$_SESSION['user']['id'], $delivery_datetime, $total]);
+//             $order_id = $pdo->lastInsertId();
+>>>>>>> 4023996 (added the payment getway to stripe)
             
-            // Add order items
-            $stmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
-            foreach ($_SESSION['cart'] as $product_id => $item) {
-                $stmt->execute([$order_id, $product_id, $item['quantity'], $item['price']]);
-            }
+//             // Add order items
+//             $stmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+//             foreach ($_SESSION['cart'] as $product_id => $item) {
+//                 $stmt->execute([$order_id, $product_id, $item['quantity'], $item['price']]);
+//             }
             
-            $pdo->commit();
+//             $pdo->commit();
             
+<<<<<<< HEAD
             // Create Stripe payment intent
             $payment_result = create_payment_intent($total, $order_id, $_SESSION['user']['email']);
             
@@ -67,8 +81,60 @@ if ($_POST && isset($_POST['place_order'])) {
             $error = 'Order creation failed. Please try again.';
             error_log('Checkout Error: ' . $e->getMessage());
         }
+=======
+//             // Send order confirmation email
+//             include '../includes/mailer.php';
+//             notify_order_placed($order_id);
+            
+//             // Clear cart
+//             unset($_SESSION['cart']);
+            
+//             // Redirect to confirmation
+//             header("Location: confirm.php?order_id=" . $order_id);
+//             exit;
+            
+//         } catch (Exception $e) {
+//             $pdo->rollBack();
+//             $error = 'Order placement failed. Please try again.';
+//         }
+//     }
+// }
+
+
+if ($_POST && isset($_POST['pay_with_stripe'])) {
+
+    require '../vendor/autoload.php';
+    \Stripe\Stripe::setApiKey("sk_test_51TAoFjGlnxHLwWpiAFNjSi50D1qAw6QYBWLlY78kdmpLttae0qfO2VrUIUxKhmby9I9clOqsw8iGQEjxQ6BXFqKP004Hx3Mz4h");
+
+    $line_items = [];
+
+    foreach ($_SESSION['cart'] as $item) {
+        $line_items[] = [
+            'price_data' => [
+                'currency' => 'lkr',
+                'product_data' => [
+                    'name' => $item['name'],
+                ],
+                'unit_amount' => $item['price'] * 100,
+            ],
+            'quantity' => $item['quantity'],
+        ];
+>>>>>>> 4023996 (added the payment getway to stripe)
     }
+
+    $session = \Stripe\Checkout\Session::create([
+        'payment_method_types' => ['card'],
+        'line_items' => $line_items,
+        'mode' => 'payment',
+
+        'success_url' => 'http://localhost/diffindo/order/success.php',
+        'cancel_url' => 'http://localhost/diffindo/cart/view.php'
+    ]);
+
+    header("Location: " . $session->url);
+    exit();
 }
+
 
 // Calculate cart total
 $cart_total = 0;
@@ -149,6 +215,7 @@ foreach ($_SESSION['cart'] as $item) {
                     </div>
                 <?php endif; ?>
                 
+<<<<<<< HEAD
                 <!-- Step 1: Order Details Form -->
                 <?php if (!$payment_intent): ?>
                     <form method="POST" class="space-y-4">
@@ -201,6 +268,42 @@ foreach ($_SESSION['cart'] as $item) {
                         <div id="card-errors" class="text-red-600 text-sm"></div>
                         
                         <button id="pay-button" 
+=======
+                <form method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Customer Name</label>
+                        <input type="text" value="<?= htmlspecialchars($_SESSION['user']['name']) ?>" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" value="<?= htmlspecialchars($_SESSION['user']['email']) ?>" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                    </div>
+                    
+                    <div>                                               
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Delivery Date & Time *</label>
+                        <input type="datetime-local" name="delivery_datetime" required 
+                               min="<?= date('Y-m-d\TH:i', strtotime('+2 hours')) ?>"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-500">
+                        <p class="text-xs text-gray-500 mt-1">Minimum 2 hours from now</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Special Notes (Optional)</label>
+                        <textarea name="notes" rows="3" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-500"
+                                  placeholder="Any special instructions for your order..."></textarea>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <!-- <button type="submit" name="place_order" 
+                                class="w-full bg-pink-600 text-white py-3 px-4 rounded-lg hover:bg-pink-700 font-semibold">
+                            Place Order (Rs <?= number_format($cart_total) ?>)
+                        </button> -->
+                        <button type="submit" name="pay_with_stripe" 
+>>>>>>> 4023996 (added the payment getway to stripe)
                                 class="w-full bg-pink-600 text-white py-3 px-4 rounded-lg hover:bg-pink-700 font-semibold">
                             Pay Now - Rs <?= number_format($cart_total) ?>
                         </button>
