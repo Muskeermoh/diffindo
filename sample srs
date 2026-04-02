@@ -1,0 +1,282 @@
+Contents
+Software Requirements Specification (SRS)	1
+Diffindo Cakes and Bakes – E-Commerce Web Application	1
+1	Introduction	1
+1.1	Purpose	1
+1.2	Background	1
+1.3	Objectives	1
+1.4	Scope	2
+2	Overall Description	2
+2.1	Product Perspective	2
+2.2	Product Functions	2
+2.3	User Classes and Characteristics	3
+Customer	3
+Administrator	3
+2.4	Operating Environment	3
+2.5	Design Constraints	4
+2.6	Assumptions and Dependencies	4
+3	Functional Requirements	4
+3.1	User Registration	4
+3.2	User Authentication	4
+3.3	Product Catalogue	4
+3.4	Shopping Cart	5
+3.5	Checkout and Order Processing	5
+3.6	Order History	5
+3.7	Product Management (Admin)	5
+3.8	Order Management (Admin)	5
+4	Non-Functional Requirements	6
+4.1	Security	6
+4.2	Performance	6
+4.3	Usability	6
+4.4	Reliability	6
+4.5	Scalability	6
+5	System Design	7
+5.1	System Architecture	7
+5.2	Database Entities	7
+6	Implementation	7
+7	Software Quality and Testing	8
+Unit Testing	8
+Integration Testing	8
+System Testing	8
+Acceptance Testing	8
+8	Development Tools	8
+9	Conclusion	9
+
+Software Requirements Specification (SRS)
+Diffindo Cakes and Bakes – E-Commerce Web Application
+
+1	Introduction
+1.1	Purpose
+The purpose of this Software Requirements Specification (SRS) document is to describe the functional and non-functional requirements of the Diffindo Cakes and Bakes E-Commerce System.
+This document provides a detailed description of the system features, system architecture, user interactions, and technical requirements needed for the development and operation of the application.
+The document serves as a reference for developers, system administrators, testers, and project stakeholders.
+1.2	Background
+Diffindo Cakes and Bakes is an online bakery platform developed to provide customers with a convenient way to browse and order premium cakes and baked goods through the internet.
+Traditional bakery ordering requires customers to physically visit the store. This system digitizes the ordering process and allows customers to place orders online easily.
+The system also provides an administrative dashboard where administrators can manage products and process customer orders efficiently.\
+
+1.3	Objectives
+The main objectives of the system are:
+•	Provide an online catalogue for bakery products
+•	Allow customers to create accounts and place orders
+•	Enable administrators to manage products and orders
+•	Send order confirmation emails automatically
+•	Provide a secure and user-friendly ordering system
+1.4	Scope
+The Diffindo Cakes and Bakes system is a web-based e-commerce application that enables customers to browse bakery products, add items to a shopping cart, and place orders online.
+The system provides two main user roles:
+Customer
+•	Register and login
+•	Browse products
+•	Add items to cart
+•	Checkout and place orders
+•	View order history
+Administrator
+•	Manage products
+•	Manage customer orders
+•	Monitor store activity
+The system is built using PHP, MySQL, HTML5, Tailwind CSS, and JavaScript.
+2	Overall Description
+2.1	Product Perspective
+The Diffindo system is a standalone web application that connects customers with an online bakery store.
+The system consists of three main layers:
+User Browser
+↓
+Frontend Interface (HTML, Tailwind CSS, JavaScript)
+↓
+Backend Application (PHP)
+↓
+Database (MySQL)
+2.2	Product Functions
+The main functions of the system include:
+Customer Functions:
+•	User registration
+•	User login/logout
+•	Product browsing
+•	Add products to cart
+•	Remove products from cart
+•	Checkout and place orders
+•	Order history viewing
+•	Email order confirmation
+Admin Functions:
+•	Admin login
+•	Add new products
+•	Edit product information
+•	Delete products
+•	View customer orders
+•	Manage order details
+2.3	User Classes and Characteristics
+Customer
+Customers are registered users who use the system to browse products and place orders.
+Characteristics:
+•	Basic internet knowledge
+•	Uses web browser
+•	Wants quick and easy ordering experience
+Administrator
+Administrators manage the system content and orders.
+Characteristics:
+•	Has full system access
+•	Responsible for managing products and orders
+•	Uses the admin dashboard
+2.4	Operating Environment
+The system operates in the following environment:
+Component	Requirement
+Web Browser	Chrome, Firefox, Edge
+Server	Apache / Nginx
+Backend	PHP 7.4 or higher
+Database	MySQL 5.7 or higher
+OS	Windows / Linux / Mac
+
+2.5	Design Constraints
+The system must follow the following constraints:
+•	Developed using PHP and MySQL
+•	Must run on standard web servers
+•	Must support modern browsers
+•	Must use responsive design
+2.6	Assumptions and Dependencies
+•	Users have internet access
+•	SMTP email service is available
+•	Database server is running
+•	Administrator manages product inventory
+3	Functional Requirements
+3.1	User Registration
+Users must be able to create an account by providing:
+•	Name
+•	Email address
+•	Password
+The system must validate the email and store the password securely.
+3.2	User Authentication
+Users must be able to login using their registered email and password.
+The system must:
+•	Verify credentials
+•	Start a user session
+•	Redirect the user to the homepage
+3.3	Product Catalogue
+Customers must be able to browse a list of available bakery products.
+Each product should display:
+•	Product image
+•	Product name
+•	Description
+•	Price
+3.4	Shopping Cart
+Customers must be able to add products to a shopping cart.
+Cart features include:
+•	Add items
+•	Remove items
+•	View cart
+•	Update quantity
+3.5	Checkout and Order Processing
+Customers must be able to place orders through the checkout process.
+Process:
+1.	User reviews cart
+2.	User confirms order
+3.	Order stored in database
+4.	Email confirmation sent to customer
+3.6	Order History
+Customers must be able to view previous orders through their account.
+3.7	Product Management (Admin)
+Administrators must be able to:
+•	Add new products
+•	Edit product information
+•	Delete products
+•	Upload product images
+3.8	Order Management (Admin)
+Administrators must be able to:
+•	View customer orders
+•	Process and manage orders
+•	Monitor order activity
+4	Non-Functional Requirements
+4.1	Security
+The system must ensure:
+•	Password encryption
+•	Protection against SQL injection
+•	Secure session management
+•	Restricted admin access
+
+4.2	Performance
+The system should:
+•	Respond within 3 seconds
+•	Handle multiple users simultaneously
+•	Optimize database queries
+
+4.3	Usability
+The system interface must be:
+•	Easy to navigate
+•	Responsive on mobile devices
+•	Visually clean and simple
+
+4.4	Reliability
+The system must:
+•	Store data securely
+•	Maintain system stability
+•	Support database backups
+•	
+4.5	Scalability
+The system should support future enhancements such as:
+•	Payment gateway integration
+•	Mobile application support
+•	Delivery tracking
+5	System Design
+5.1	System Architecture
+The system uses a layered architecture consisting of:
+Frontend Layer
+•	HTML
+•	Tailwind CSS
+•	JavaScript
+Backend Layer
+•	PHP application logic
+Database Layer
+•	MySQL database
+5.2	Database Entities
+Main database tables include:
+Table	Description
+Users	Stores user accounts
+Products	Stores bakery products
+Orders	Stores order details
+Order_Items	Stores items in each order
+Cart	Temporary cart storage
+
+6	Implementation
+The system was implemented using modern web development technologies.
+Technology Stack:
+Backend: PHP 7.4+ with PDO
+Database: MySQL
+Frontend: HTML5, Tailwind CSS, JavaScript
+Email Service: PHPMailer using Gmail SMTP
+Development Tools:
+•	Visual Studio Code
+•	Laragon local server
+•	phpMyAdmin
+•	Git and GitHub
+7	Software Quality and Testing
+The system was tested using several testing methods.
+Unit Testing
+Testing individual modules such as login, cart, and product management.
+Integration Testing
+Testing communication between modules such as checkout and order processing.
+System Testing
+Testing the complete workflow of the application.
+Acceptance Testing
+Ensuring the system meets the project requirements.
+Example Test Cases:
+Test Case	Action	Expected Result
+Login	Enter valid credentials	User successfully logs in
+Add to Cart	Add product	Product appears in cart
+Checkout	Place order	Order saved in database
+
+8	Development Tools
+The following tools were used during development:
+Tool	Purpose
+Git	Version control
+GitHub	Project repository
+Visual Studio Code	Code editor
+Laragon	Local server
+phpMyAdmin	Database management
+Selenium	Automated testing
+PHPMailer	Email notifications
+
+9	Conclusion
+The Diffindo Cakes and Bakes system successfully demonstrates the implementation of an online bakery ordering platform.
+The system provides customers with a convenient way to browse products and place orders while allowing administrators to efficiently manage products and customer orders.
+The project demonstrates the use of modern web technologies and software engineering practices in developing a functional e-commerce system.
+
