@@ -113,10 +113,16 @@ if ($_POST) {
             
             <div class="text-center mt-8 space-y-4">
                 <p class="text-gray-600">
+                    <a href="forgot_password.php" class="text-pink-600 hover:text-pink-700 font-semibold transition-colors">forgot Password?</a>
+                </p>
+            </div>
+            <div class="text-center mt-8 space-y-4">
+                <p class="text-gray-600">
                     Don't have an account? 
                     <a href="register.php" class="text-pink-600 hover:text-pink-700 font-semibold transition-colors">Create Account</a>
                 </p>
             </div>
+            
             
             <!-- <div class="mt-8 p-6 bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl border border-pink-200">
                 <h4 class="font-semibold text-gray-700 mb-3 flex items-center">

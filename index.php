@@ -307,7 +307,7 @@
           <h3 class="font-heading text-2xl font-bold text-gray-800">Diffindo Cakes & Bakes</h3>
         </div>
         <p class="text-gray-600 mb-6">Crafting sweet memories, one cake at a time.</p>
-        <p class="text-sm text-gray-500">© 2025 Diffindo Cakes & Bakes. All rights reserved.</p>
+        <p class="text-sm text-gray-500">© 2026 Diffindo Cakes & Bakes. All rights reserved.</p>
       </div>
     </div>
   </footer>

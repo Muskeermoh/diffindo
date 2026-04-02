@@ -11,6 +11,9 @@ CREATE TABLE users (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
+  phone VARCHAR(32) DEFAULT NULL,
+  password_reset_token VARCHAR(255) DEFAULT NULL,
+  password_reset_expires DATETIME DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -47,8 +50,8 @@ CREATE TABLE order_items (
 );
 
 -- Sample Admin User
-INSERT INTO users (name, email, password) VALUES
-('Admin', 'admin@diffindo.com', SHA2('admin123', 256));
+INSERT INTO users (name, email, password, phone) VALUES
+('Admin', 'admin@diffindo.com', SHA2('admin123', 256), NULL);
 
 -- Sample Products
 INSERT INTO products (name, description, price, image) VALUES
