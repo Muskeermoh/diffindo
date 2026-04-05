@@ -18,9 +18,12 @@ if ($_POST) {
         if ($user && hash('sha256', $password) === $user['password']) {
             $_SESSION['user'] = $user;
             
-            // Redirect based on user type
-            if ($user['email'] === 'admin@diffindo.com') {
+            // Redirect based on user role
+            $role = $user['role'];
+            if ($role === 'admin') {
                 header("Location: admin/dashboard.php");
+            } elseif ($role === 'support_staff') {
+                header("Location: support/dashboard.php");
             } else {
                 header("Location: user/dashboard.php");
             }

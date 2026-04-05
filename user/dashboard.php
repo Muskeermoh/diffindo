@@ -4,6 +4,19 @@ include '../includes/auth.php';
 
 require_login();
 
+// Check if user is customer - redirect if not
+if (!is_customer()) {
+    $role = get_user_role();
+    if ($role === 'admin') {
+        header("Location: ../admin/dashboard.php");
+    } elseif ($role === 'support_staff') {
+        header("Location: ../support/dashboard.php");
+    } else {
+        header("Location: ../index.php");
+    }
+    exit;
+}
+
 // Get user orders
 $stmt = $pdo->prepare("
     SELECT o.*, 

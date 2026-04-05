@@ -66,7 +66,7 @@ $message = $_GET['message'] ?? ($_POST['message'] ?? '');
                     </a>
                     <a href="../reach-us.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">Reach Us</a>
                     <?php if (is_logged_in()): ?>
-                        <a href="../user/dashboard.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">
+                        <a href="../dashboard.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">
                             <i class="fas fa-user-circle mr-2"></i>Dashboard
                         </a>
                         <a href="../logout.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">Logout</a>

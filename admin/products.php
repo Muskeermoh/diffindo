@@ -2,10 +2,7 @@
 include '../includes/db.php';
 include '../includes/auth.php';
 
-if (!is_admin()) {
-    header("Location: login.php");
-    exit;
-}
+require_admin();
 
 $message = '';
 $action = $_GET['action'] ?? 'list';
@@ -177,7 +174,10 @@ if ($action === 'list') {
                     <a href="dashboard.php" class="text-white hover:text-gray-300">Dashboard</a>
                     <a href="products.php" class="text-white hover:text-gray-300 font-bold">Products</a>
                     <a href="orders.php" class="text-white hover:text-gray-300">Orders</a>
+                    <a href="customers.php" class="text-white hover:text-gray-300">Customers</a>
+                    <a href="support-staff.php" class="text-white hover:text-gray-300">Support Staff</a>
                     <a href="image-manager.php" class="text-white hover:text-gray-300">Images</a>
+                    <a href="../reach-us.php" class="text-white hover:text-gray-300">Reach Us</a>
                     <a href="../index.php" class="text-white hover:text-gray-300">View Site</a>
                     <a href="../logout.php" class="text-white hover:text-gray-300">Logout</a>
                 </div>

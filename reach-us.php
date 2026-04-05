@@ -48,7 +48,7 @@ include 'includes/auth.php';
             <a href="login.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">Login</a>
             <a href="register.php" class="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-2 rounded-full hover:from-pink-600 hover:to-rose-600 transition-all shadow font-medium">Sign Up</a>
           <?php else: ?>
-            <a href="user/dashboard.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors"><i class="fas fa-user-circle mr-2"></i>Dashboard</a>
+            <a href="dashboard.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors"><i class="fas fa-user-circle mr-2"></i>Dashboard</a>
             <a href="logout.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">Logout</a>
           <?php endif; ?>
         </div>
@@ -70,7 +70,7 @@ include 'includes/auth.php';
           <a href="login.php" class="block text-gray-700 hover:text-pink-600 font-medium">Login</a>
           <a href="register.php" class="block text-gray-700 hover:text-pink-600 font-medium">Sign Up</a>
         <?php else: ?>
-          <a href="user/dashboard.php" class="block text-gray-700 hover:text-pink-600 font-medium">Dashboard</a>
+          <a href="dashboard.php" class="block text-gray-700 hover:text-pink-600 font-medium">Dashboard</a>
           <a href="logout.php" class="block text-gray-700 hover:text-pink-600 font-medium">Logout</a>
         <?php endif; ?>
       </div>

@@ -112,7 +112,7 @@
               Sign Up
             </a>
           <?php else: ?>
-            <a href="user/dashboard.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">
+            <a href="dashboard.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">
               <i class="fas fa-user-circle mr-2"></i>Dashboard
             </a>
             <a href="logout.php" class="text-gray-700 hover:text-pink-600 font-medium transition-colors">Logout</a>
@@ -139,7 +139,7 @@
             <a href="login.php" class="block text-gray-700 hover:text-pink-600 font-medium">Login</a>
             <a href="register.php" class="block text-gray-700 hover:text-pink-600 font-medium">Sign Up</a>
           <?php else: ?>
-            <a href="user/dashboard.php" class="block text-gray-700 hover:text-pink-600 font-medium">Dashboard</a>
+            <a href="dashboard.php" class="block text-gray-700 hover:text-pink-600 font-medium">Dashboard</a>
             <a href="logout.php" class="block text-gray-700 hover:text-pink-600 font-medium">Logout</a>
           <?php endif; ?>
         </div>
