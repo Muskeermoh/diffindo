@@ -51,7 +51,11 @@ if ($_POST && isset($_POST['place_order'])) {
 //             $stmt = $pdo->prepare("INSERT INTO orders (user_id, delivery_datetime, total, status) VALUES (?, ?, ?, 'pending')");
 //             $stmt->execute([$_SESSION['user']['id'], $delivery_datetime, $total]);
 //             $order_id = $pdo->lastInsertId();
+<<<<<<< HEAD
 >>>>>>> 4023996 (added the payment getway to stripe)
+=======
+
+>>>>>>> 05da684 (integrated stripe payment flow and moved secret key to env)
             
 //             // Add order items
 //             $stmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
@@ -104,7 +108,11 @@ if ($_POST && isset($_POST['place_order'])) {
 if ($_POST && isset($_POST['pay_with_stripe'])) {
 
     require '../vendor/autoload.php';
-    \Stripe\Stripe::setApiKey("sk_test_51TAoFjGlnxHLwWpiAFNjSi50D1qAw6QYBWLlY78kdmpLttae0qfO2VrUIUxKhmby9I9clOqsw8iGQEjxQ6BXFqKP004Hx3Mz4h");
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
+\Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
 
     $line_items = [];
 
@@ -127,7 +135,7 @@ if ($_POST && isset($_POST['pay_with_stripe'])) {
         'line_items' => $line_items,
         'mode' => 'payment',
 
-        'success_url' => 'http://localhost/diffindo/order/success.php',
+        'success_url' => 'http://localhost/diffindo/order/success.php?order_id=' . $order_id,
         'cancel_url' => 'http://localhost/diffindo/cart/view.php'
     ]);
 

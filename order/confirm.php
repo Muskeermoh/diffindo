@@ -4,8 +4,10 @@ include '../includes/auth.php';
 
 require '../vendor/autoload.php';
 
-\Stripe\Stripe::setApiKey('sk_test_51TAoFjGlnxHLwWpiAFNjSi50D1qAw6QYBWLlY78kdmpLttae0qfO2VrUIUxKhmby9I9clOqsw8iGQEjxQ6BXFqKP004Hx3Mz4h');
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
 
+\Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
 
 require_login();
 

@@ -1,3 +1,10 @@
+<?php
+session_start();
+$order_id = $_GET['order_id'] ?? $_SESSION['last_order_id'] ?? 'N/A';
+unset($_SESSION['last_order_id']);
+unset($_SESSION['cart']);
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,7 +19,7 @@
             <strong class="me-auto">Success</strong>
         </div>
         <div class="toast-body">
-            🎉 Payment successful! Order ID: <?= $order_id ?>
+            🎉 Payment successful! <?= htmlspecialchars($order_id) ?>
         </div>
     </div>
 </div>
