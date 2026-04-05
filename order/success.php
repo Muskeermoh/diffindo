@@ -1,56 +1,32 @@
-<?php
-session_start();
-include '../includes/db.php';
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Success</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
 
-if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
-    echo "Cart is empty.";
-    exit;
-}
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="successToast" class="toast text-bg-success" role="alert">
+        <div class="toast-header">
+            <strong class="me-auto">Success</strong>
+        </div>
+        <div class="toast-body">
+            🎉 Payment successful! Order ID: <?= $order_id ?>
+        </div>
+    </div>
+</div>
 
-try {
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    $pdo->beginTransaction();
+<script>
+    const toast = new bootstrap.Toast(document.getElementById('successToast'));
+    toast.show();
 
-    $total = 0;
+    setTimeout(() => {
+        window.location.href = "../index.php";
+    }, 3000);
+</script>
 
-    foreach ($_SESSION['cart'] as $item) {
-        $total += $item['price'] * $item['quantity'];
-    }
-
-    // Create order
-    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'paid')");
-    $stmt->execute([$_SESSION['user']['id'], $total]);
-
-    $order_id = $pdo->lastInsertId();
-
-    // Save order items
-    $stmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
-
-    foreach ($_SESSION['cart'] as $product_id => $item) {
-        $stmt->execute([
-            $order_id,
-            $product_id,
-            $item['quantity'],
-            $item['price']
-        ]);
-    }
-
-    $pdo->commit();
-
-    // Clear cart
-    unset($_SESSION['cart']);
-
-} catch (Exception $e) {
-
-    $pdo->rollBack();
-    echo "Order failed.";
-    exit;
-}
-
-?>
-
-<h2>🎉 Payment Successful</h2>
-<p>Your order has been placed successfully.</p>
-
-<p><b>Order ID:</b> <?= $order_id ?></p>
-<a href="../index.php">Back to Home</a>
+</body>
+</html>
