@@ -76,8 +76,22 @@ function send_order_notification($to_email, $customer_name, $order_id, $status, 
             $message .= "</p>\n<p>If you have any urgent issues, you may also reply to this email.</p>\n<p>Best regards,<br>Diffindo Cakes & Bakes Team</p>";
             break;
         case 'rejected':
-            $subject = "Order Update - Diffindo Cakes & Bakes (Order #$order_id)";
-            $message = "<h2>Order Update</h2>\n<p>Dear " . htmlspecialchars($customer_name) . ",</p>\n<p>We're sorry to inform you that we cannot fulfill your order #$order_id at this time.</p>\n<p>Best regards,<br>Diffindo Cakes & Bakes Team</p>";
+            $subject = "Order Rejected & Refund Processed - Diffindo Cakes & Bakes (Order #$order_id)";
+            $message = "<h2>Order Update & Refund Details</h2>\n<p>Dear " . htmlspecialchars($customer_name) . ",</p>\n<p>We regret to inform you that we cannot fulfill your order #$order_id at this time.</p>\n";
+            
+            if (!empty($order_details['refund_amount'])) {
+                $refund_amount = number_format($order_details['refund_amount']);
+                $message .= "<p><strong>Refund Amount:</strong> Rs " . $refund_amount . "</p>\n";
+            }
+            if (!empty($order_details['refund_id'])) {
+                $message .= "<p><strong>Refund Transaction ID:</strong> " . htmlspecialchars($order_details['refund_id']) . "</p>\n";
+            }
+            if (!empty($order_details['refund_amount'])) {
+                $message .= "<p style='color: #27ae60; font-weight: bold;'>Your refund has been issued to your original payment method.</p>\n";
+                $message .= "<p>Please allow 3-5 business days for the refund to appear on your statement.</p>\n";
+            }
+            
+            $message .= "<p>We are sorry for the inconvenience. If you have any questions, please contact us and we will assist you promptly.</p>\n<p>Best regards,<br>Diffindo Cakes & Bakes Team</p>";
             break;
         default:
             $subject = "Order Update - Diffindo Cakes & Bakes (Order #$order_id)";
@@ -130,7 +144,7 @@ function notify_order_placed($order_id) {
     return false;
 }
 
-function notify_order_status_change($order_id, $new_status) {
+function notify_order_status_change($order_id, $new_status, $refund_amount = null, $refund_id = null) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT o.*, u.name as customer_name, u.email as customer_email FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?");
     $stmt->execute([$order_id]);
@@ -141,7 +155,14 @@ function notify_order_status_change($order_id, $new_status) {
             error_log("EMAIL WARNING: Order #$order_id has no customer email; skipping notification for status '$new_status'.");
             return false;
         }
-        return send_order_notification($order['customer_email'], $order['customer_name'], $order_id, $new_status);
+        $order_details = [];
+        if ($refund_amount !== null) {
+            $order_details['refund_amount'] = $refund_amount;
+        }
+        if ($refund_id !== null) {
+            $order_details['refund_id'] = $refund_id;
+        }
+        return send_order_notification($order['customer_email'], $order['customer_name'], $order_id, $new_status, $order_details);
     }
     return false;
 }

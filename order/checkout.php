@@ -1,6 +1,7 @@
 <?php
 include '../includes/db.php';
 include '../includes/auth.php';
+include '../includes/stripe-config.php';
 
 require_login();
 
@@ -11,8 +12,10 @@ if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
 }
 
 $error = '';
-$success = false;
+$order_id = null;
+$payment_intent = null;
 
+// Step 1: Create temporary order (before payment)
 if ($_POST && isset($_POST['place_order'])) {
     $delivery_datetime = $_POST['delivery_datetime'];
     $notes = trim($_POST['notes'] ?? '');
@@ -32,8 +35,8 @@ if ($_POST && isset($_POST['place_order'])) {
                 $total += $item['price'] * $item['quantity'];
             }
             
-            // Create order
-            $stmt = $pdo->prepare("INSERT INTO orders (user_id, delivery_datetime, total, status) VALUES (?, ?, ?, 'pending')");
+            // Create order with payment_status = 'pending'
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, delivery_datetime, total, status, payment_status) VALUES (?, ?, ?, 'pending', 'pending')");
             $stmt->execute([$_SESSION['user']['id'], $delivery_datetime, $total]);
             $order_id = $pdo->lastInsertId();
             
@@ -45,20 +48,24 @@ if ($_POST && isset($_POST['place_order'])) {
             
             $pdo->commit();
             
-            // Send order confirmation email
-            include '../includes/mailer.php';
-            notify_order_placed($order_id);
+            // Create Stripe payment intent
+            $payment_result = create_payment_intent($total, $order_id, $_SESSION['user']['email']);
             
-            // Clear cart
-            unset($_SESSION['cart']);
-            
-            // Redirect to confirmation
-            header("Location: confirm.php?order_id=" . $order_id);
-            exit;
+            if ($payment_result['success']) {
+                $payment_intent = $payment_result;
+            } else {
+                error_log('Stripe Payment Intent Failed: ' . print_r($payment_result, true));
+                $error = 'Payment setup failed: ' . ($payment_result['error'] ?? 'Unknown error');
+                // Delete the temporary order
+                $pdo->prepare("DELETE FROM order_items WHERE order_id = ?")->execute([$order_id]);
+                $pdo->prepare("DELETE FROM orders WHERE id = ?")->execute([$order_id]);
+                $order_id = null;
+            }
             
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error = 'Order placement failed. Please try again.';
+            $error = 'Order creation failed. Please try again.';
+            error_log('Checkout Error: ' . $e->getMessage());
         }
     }
 }
@@ -142,49 +149,139 @@ foreach ($_SESSION['cart'] as $item) {
                     </div>
                 <?php endif; ?>
                 
-                <form method="POST" class="space-y-4">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Customer Name</label>
-                        <input type="text" value="<?= htmlspecialchars($_SESSION['user']['name']) ?>" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                        <input type="email" value="<?= htmlspecialchars($_SESSION['user']['email']) ?>" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
-                    </div>
-                    
-                    <div>                                               
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Delivery Date & Time *</label>
-                        <input type="datetime-local" name="delivery_datetime" required 
-                               min="<?= date('Y-m-d\TH:i', strtotime('+2 hours')) ?>"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-500">
-                        <p class="text-xs text-gray-500 mt-1">Minimum 2 hours from now</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Special Notes (Optional)</label>
-                        <textarea name="notes" rows="3" 
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-500"
-                                  placeholder="Any special instructions for your order..."></textarea>
-                    </div>
-                    
-                    <div class="pt-4">
-                        <button type="submit" name="place_order" 
+                <!-- Step 1: Order Details Form -->
+                <?php if (!$payment_intent): ?>
+                    <form method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Customer Name</label>
+                            <input type="text" value="<?= htmlspecialchars($_SESSION['user']['name']) ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                            <input type="email" value="<?= htmlspecialchars($_SESSION['user']['email']) ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>                                               
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Delivery Date & Time *</label>
+                            <input type="datetime-local" name="delivery_datetime" required 
+                                   min="<?= date('Y-m-d\TH:i', strtotime('+2 hours')) ?>"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-500">
+                            <p class="text-xs text-gray-500 mt-1">Minimum 2 hours from now</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Special Notes (Optional)</label>
+                            <textarea name="notes" rows="3" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-500"
+                                      placeholder="Any special instructions for your order..."></textarea>
+                        </div>
+                        
+                        <div class="pt-4">
+                            <button type="submit" name="place_order" 
+                                    class="w-full bg-pink-600 text-white py-3 px-4 rounded-lg hover:bg-pink-700 font-semibold">
+                                Proceed to Payment (Rs <?= number_format($cart_total) ?>)
+                            </button>
+                        </div>
+                        
+                        <div class="text-center">
+                            <a href="../cart/view.php" class="text-pink-600 hover:text-pink-800 text-sm">
+                                ← Back to Cart
+                            </a>
+                        </div>
+                    </form>
+                <?php else: ?>
+                    <!-- Step 2: Payment Form -->
+                    <div id="payment-section" class="space-y-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Payment Details</h3>
+                        
+                        <div id="card-element" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"></div>
+                        <div id="card-errors" class="text-red-600 text-sm"></div>
+                        
+                        <button id="pay-button" 
                                 class="w-full bg-pink-600 text-white py-3 px-4 rounded-lg hover:bg-pink-700 font-semibold">
-                            Place Order (Rs <?= number_format($cart_total) ?>)
+                            Pay Now - Rs <?= number_format($cart_total) ?>
                         </button>
+                        
+                        <div class="text-center">
+                            <a href="../cart/view.php" class="text-pink-600 hover:text-pink-800 text-sm">
+                                ← Back to Cart
+                            </a>
+                        </div>
                     </div>
                     
-                    <div class="text-center">
-                        <a href="../cart/view.php" class="text-pink-600 hover:text-pink-800 text-sm">
-                            ← Back to Cart
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+                    <script src="https://js.stripe.com/v3/"></script>
+                    <script>
+                        const stripe = Stripe('<?= htmlspecialchars($stripe_config['publishable_key']) ?>');
+                        const elements = stripe.elements();
+                        const cardElement = elements.create('card');
+                        
+                        cardElement.mount('#card-element');
+                        
+                        // Handle card errors
+                        cardElement.addEventListener('change', (e) => {
+                            const errorDiv = document.getElementById('card-errors');
+                            if (e.error) {
+                                errorDiv.textContent = e.error.message;
+                            } else {
+                                errorDiv.textContent = '';
+                            }
+                        });
+                        
+                        // Handle payment
+                        document.getElementById('pay-button').addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            
+                            const button = e.target;
+                            button.disabled = true;
+                            button.textContent = 'Processing...';
+                            
+                            const { error, paymentIntent } = await stripe.confirmCardPayment(
+                                '<?= htmlspecialchars($payment_intent['client_secret']) ?>',
+                                {
+                                    payment_method: {
+                                        card: cardElement,
+                                        billing_details: {
+                                            name: '<?= htmlspecialchars($_SESSION['user']['name']) ?>',
+                                            email: '<?= htmlspecialchars($_SESSION['user']['email']) ?>'
+                                        }
+                                    }
+                                }
+                            );
+                            
+                            if (error) {
+                                document.getElementById('card-errors').textContent = error.message;
+                                button.disabled = false;
+                                button.textContent = 'Pay Now - Rs <?= number_format($cart_total) ?>';
+                            } else if (paymentIntent.status === 'succeeded') {
+                                // Send payment confirmation to server
+                                await fetch('/diffindo-cakes-and-bakes/order/process-payment.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        payment_intent_id: paymentIntent.id,
+                                        order_id: <?= $order_id ?>
+                                    })
+                                }).then(response => response.json())
+                                  .then(data => {
+                                      if (data.success) {
+                                        // Clear cart
+                                        fetch('/diffindo-cakes-and-bakes/cart/clear.php')
+                                            .then(() => {
+                                              // Redirect to confirmation
+                                              window.location.href = '/diffindo-cakes-and-bakes/order/confirm.php?order_id=' + data.order_id;
+                                            });
+                                      } else {
+                                          document.getElementById('card-errors').textContent = data.error;
+                                          button.disabled = false;
+                                          button.textContent = 'Pay Now - Rs <?= number_format($cart_total) ?>';
+                                      }
+                                  });
+                            }
+                        });
+                    </script>
+                <?php endif; ?>

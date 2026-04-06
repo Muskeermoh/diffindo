@@ -1,10 +1,12 @@
 <?php
 include '../includes/db.php';
 include '../includes/auth.php';
+include '../includes/stripe-config.php';
 
 require_admin();
 
 $message = '';
+$error = '';
 
 // Handle order status updates
 if ($_POST && isset($_POST['action'])) {
@@ -19,8 +21,31 @@ if ($_POST && isset($_POST['action'])) {
             $message = "Order #$order_id has been accepted and customer notified.";
         }
     } elseif ($action === 'reject') {
-        $stmt = $pdo->prepare("UPDATE orders SET status = 'rejected' WHERE id = ?");
-        if ($stmt->execute([$order_id])) {
+        // Get order details for refund
+        $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
+        $stmt->execute([$order_id]);
+        $order = $stmt->fetch();
+        
+        if ($order && $order['payment_status'] === 'completed' && ($order['stripe_charge_id'] || $order['stripe_payment_intent_id'])) {
+            // Process refund
+            $refund_result = refund_payment($order['stripe_charge_id'], $order['total'], $order['stripe_payment_intent_id']);
+            
+            if ($refund_result['success']) {
+                // Update order status
+                $stmt = $pdo->prepare("UPDATE orders SET status = 'rejected', payment_status = 'refunded' WHERE id = ?");
+                $stmt->execute([$order_id]);
+                
+                include '../includes/mailer.php';
+                notify_order_status_change($order_id, 'rejected', $order['total'], $refund_result['refund_id']);
+                $message = "Order #$order_id has been rejected and refund of Rs " . number_format($order['total']) . " has been processed.";
+            } else {
+                $error = "Failed to process refund: " . $refund_result['error'];
+            }
+        } else {
+            // No payment to refund, just update status
+            $stmt = $pdo->prepare("UPDATE orders SET status = 'rejected' WHERE id = ?");
+            $stmt->execute([$order_id]);
+            
             include '../includes/mailer.php';
             notify_order_status_change($order_id, 'rejected');
             $message = "Order #$order_id has been rejected and customer notified.";
@@ -33,10 +58,14 @@ if ($_POST && isset($_POST['action'])) {
             $message = "Order #$order_id has been marked delivered and customer notified.";
         }
     }
+    
     // Prevent duplicate form submission (Post/Redirect/Get)
     if (!session_id()) session_start();
     if (!empty($message)) {
         $_SESSION['admin_message'] = $message;
+    }
+    if (!empty($error)) {
+        $_SESSION['admin_error'] = $error;
     }
     header('Location: orders.php');
     exit;
@@ -47,6 +76,10 @@ if (!session_id()) session_start();
 if (isset($_SESSION['admin_message'])) {
     $message = $_SESSION['admin_message'];
     unset($_SESSION['admin_message']);
+}
+if (isset($_SESSION['admin_error'])) {
+    $error = $_SESSION['admin_error'];
+    unset($_SESSION['admin_error']);
 }
 
 // Get all orders with customer details
@@ -123,6 +156,12 @@ $counts['all'] = array_sum($counts);
         <?php if ($message): ?>
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
                 <?= htmlspecialchars($message) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($error): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
 

@@ -1,6 +1,7 @@
 <?php
 include '../includes/db.php';
 include '../includes/auth.php';
+include '../includes/stripe-config.php';
 
 require_support_staff();
 
@@ -20,8 +21,31 @@ if ($action && $order_id) {
             $success = 'Order accepted successfully. Customer has been notified.';
         }
     } elseif ($action === 'reject') {
-        $stmt = $pdo->prepare("UPDATE orders SET status = 'rejected' WHERE id = ?");
-        if ($stmt->execute([$order_id])) {
+        // Get order details for refund
+        $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
+        $stmt->execute([$order_id]);
+        $order = $stmt->fetch();
+        
+        if ($order && $order['payment_status'] === 'completed' && ($order['stripe_charge_id'] || $order['stripe_payment_intent_id'])) {
+            // Process refund
+            $refund_result = refund_payment($order['stripe_charge_id'], $order['total'], $order['stripe_payment_intent_id']);
+            
+            if ($refund_result['success']) {
+                // Update order status
+                $stmt = $pdo->prepare("UPDATE orders SET status = 'rejected', payment_status = 'refunded' WHERE id = ?");
+                $stmt->execute([$order_id]);
+                
+                include '../includes/mailer.php';
+                notify_order_status_change($order_id, 'rejected', $order['total'], $refund_result['refund_id']);
+                $success = 'Order rejected successfully. Refund of Rs ' . number_format($order['total']) . ' has been processed. Customer has been notified.';
+            } else {
+                $error = 'Failed to process refund: ' . $refund_result['error'];
+            }
+        } else {
+            // No payment to refund, just update status
+            $stmt = $pdo->prepare("UPDATE orders SET status = 'rejected' WHERE id = ?");
+            $stmt->execute([$order_id]);
+            
             include '../includes/mailer.php';
             notify_order_status_change($order_id, 'rejected');
             $success = 'Order rejected successfully. Customer has been notified.';
@@ -104,6 +128,13 @@ $orders = $stmt->fetchAll();
             <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center">
                 <i class="fas fa-check-circle mr-3"></i>
                 <?= htmlspecialchars($success) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($error): ?>
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center">
+                <i class="fas fa-exclamation-circle mr-3"></i>
+                <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
 
