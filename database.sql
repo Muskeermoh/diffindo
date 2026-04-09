@@ -36,7 +36,10 @@ CREATE TABLE orders (
   user_id INT,
   delivery_datetime DATETIME NOT NULL,
   total DECIMAL(10, 2) NOT NULL,
-  status ENUM('pending', 'accepted', 'rejected', 'cancelled') DEFAULT 'pending',
+  status ENUM('pending', 'accepted', 'delivered', 'rejected', 'cancelled') DEFAULT 'pending',
+  stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
+  stripe_charge_id VARCHAR(255) DEFAULT NULL,
+  payment_status ENUM('pending', 'completed', 'refunded') DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
