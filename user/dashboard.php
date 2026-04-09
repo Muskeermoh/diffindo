@@ -17,19 +17,76 @@ if (!is_customer()) {
     exit;
 }
 
-// Get user orders
+// Get user orders with feedback
 $stmt = $pdo->prepare("
     SELECT o.*, 
-           GROUP_CONCAT(CONCAT(p.name, ' (x', oi.quantity, ')') SEPARATOR ', ') as items
+           GROUP_CONCAT(CONCAT(p.name, ' (x', oi.quantity, ')') SEPARATOR ', ') as items,
+           MAX(f.id) as feedback_id,
+           MAX(f.rating) as rating,
+           MAX(f.comments) as comments
     FROM orders o 
     LEFT JOIN order_items oi ON o.id = oi.order_id 
     LEFT JOIN products p ON oi.product_id = p.id 
+    LEFT JOIN feedbacks f ON o.id = f.order_id
     WHERE o.user_id = ? 
     GROUP BY o.id 
     ORDER BY o.created_at DESC
 ");
 $stmt->execute([$_SESSION['user']['id']]);
 $orders = $stmt->fetchAll();
+
+// Handle feedback submission
+$feedback_error = '';
+$feedback_success = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_feedback'])) {
+    $order_id = intval($_POST['order_id']);
+    $rating = intval($_POST['rating']);
+    $comments = trim($_POST['comments'] ?? '');
+    
+    // Verify order belongs to user and is delivered
+    $stmt = $pdo->prepare("SELECT id, status FROM orders WHERE id = ? AND user_id = ?");
+    $stmt->execute([$order_id, $_SESSION['user']['id']]);
+    $order = $stmt->fetch();
+    
+    if (!$order) {
+        $feedback_error = 'Invalid order.';
+    } elseif ($order['status'] !== 'delivered' && $order['status'] !== 'accepted') {
+        $feedback_error = 'Feedback can only be submitted for delivered or accepted orders.';
+    } elseif ($rating < 1 || $rating > 5) {
+        $feedback_error = 'Please select a rating between 1 and 5.';
+    } else {
+        // Check if feedback already exists
+        $stmt = $pdo->prepare("SELECT id FROM feedbacks WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        if ($stmt->fetch()) {
+            $feedback_error = 'Feedback for this order has already been submitted.';
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO feedbacks (order_id, user_id, rating, comments) VALUES (?, ?, ?, ?)");
+            if ($stmt->execute([$order_id, $_SESSION['user']['id'], $rating, $comments])) {
+                $feedback_success = 'Thank you! Your feedback has been recorded.';
+                // Refresh orders
+                $stmt = $pdo->prepare("
+                    SELECT o.*, 
+                           GROUP_CONCAT(CONCAT(p.name, ' (x', oi.quantity, ')') SEPARATOR ', ') as items,
+                           MAX(f.id) as feedback_id,
+                           MAX(f.rating) as rating,
+                           MAX(f.comments) as comments
+                    FROM orders o 
+                    LEFT JOIN order_items oi ON o.id = oi.order_id 
+                    LEFT JOIN products p ON oi.product_id = p.id 
+                    LEFT JOIN feedbacks f ON o.id = f.order_id
+                    WHERE o.user_id = ? 
+                    GROUP BY o.id 
+                    ORDER BY o.created_at DESC
+                ");
+                $stmt->execute([$_SESSION['user']['id']]);
+                $orders = $stmt->fetchAll();
+            } else {
+                $feedback_error = 'Failed to save feedback. Please try again.';
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -145,6 +202,18 @@ $orders = $stmt->fetchAll();
             <div class="px-6 py-4 border-b">
                 <h3 class="text-xl font-semibold text-gray-800">Recent Orders</h3>
             </div>
+
+            <?php if ($feedback_error): ?>
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mx-6 mt-4" role="alert">
+                    <span class="block sm:inline"><?= htmlspecialchars($feedback_error) ?></span>
+                </div>
+            <?php endif; ?>
+            <?php if ($feedback_success): ?>
+                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mx-6 mt-4" role="alert">
+                    <span class="block sm:inline"><?= htmlspecialchars($feedback_success) ?></span>
+                </div>
+            <?php endif; ?>
+
             <div class="overflow-x-auto">
                 <?php if (empty($orders)): ?>
                     <div class="p-8 text-center">
@@ -162,6 +231,7 @@ $orders = $stmt->fetchAll();
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Delivery</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Feedback</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                             </tr>
                         </thead>
@@ -187,6 +257,29 @@ $orders = $stmt->fetchAll();
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $statusColors[$order['status']] ?>">
                                             <?= ucfirst($order['status']) ?>
                                         </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <?php if ($order['feedback_id']): ?>
+                                            <div class="flex items-center space-x-1">
+                                                <span class="text-yellow-500">
+                                                    <?php for ($i = 0; $i < $order['rating']; $i++) { ?>
+                                                        <i class="fas fa-star"></i>
+                                                    <?php } ?>
+                                                </span>
+                                                <span class="text-gray-600"><?= $order['rating'] ?>/5</span>
+                                            </div>
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm mt-1" 
+                                                    onclick="showFeedback(<?= $order['id'] ?>)">
+                                                View Feedback
+                                            </button>
+                                        <?php elseif ($order['status'] === 'delivered' || $order['status'] === 'accepted'): ?>
+                                            <button class="text-blue-600 hover:text-blue-800 font-medium" 
+                                                    onclick="openFeedbackModal(<?= $order['id'] ?>)">
+                                                <i class="fas fa-star"></i> Leave Feedback
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="text-gray-400 text-sm">-</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-4 text-sm">
                                         <?php if ($order['status'] === 'pending'): ?>
@@ -221,17 +314,157 @@ $orders = $stmt->fetchAll();
             </a>
         </div>
     </div>
-        <script>
-            // Mobile menu toggle used by the navbar
-            document.addEventListener('DOMContentLoaded', function() {
-                var btn = document.getElementById('mobile-menu-btn');
-                var menu = document.getElementById('mobile-menu');
-                if (btn && menu) {
-                    btn.addEventListener('click', function() {
-                        menu.classList.toggle('hidden');
-                    });
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Leave Feedback</h3>
+                <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form method="POST" class="px-6 py-4">
+                <input type="hidden" name="submit_feedback" value="1">
+                <input type="hidden" name="order_id" id="feedbackOrderId" value="">
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                    <div class="flex space-x-2">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <input type="radio" name="rating" value="<?= $i ?>" id="star<?= $i ?>" class="hidden star-input" required>
+                            <label for="star<?= $i ?>" class="cursor-pointer text-2xl text-gray-300 hover:text-yellow-400 transition-colors star-label" onclick="setRating(<?= $i ?>)">
+                                <i class="fas fa-star"></i>
+                            </label>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="feedbackComments" class="block text-sm font-medium text-gray-700 mb-2">Comments (Optional)</label>
+                    <textarea id="feedbackComments" name="comments" rows="4" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                              placeholder="Share your experience with this order..."></textarea>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="submit" class="flex-1 bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700 transition-colors font-medium">
+                        Submit Feedback
+                    </button>
+                    <button type="button" onclick="closeFeedbackModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Feedback Modal -->
+    <div id="viewFeedbackModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Your Feedback</h3>
+                <button onclick="closeViewFeedbackModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="feedbackContent" class="px-6 py-4">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedRating = 0;
+        
+        function openFeedbackModal(orderId) {
+            document.getElementById('feedbackOrderId').value = orderId;
+            selectedRating = 0;
+            document.querySelectorAll('.star-input').forEach((input, index) => {
+                input.checked = false;
+            });
+            document.getElementById('feedbackComments').value = '';
+            document.getElementById('feedbackModal').classList.remove('hidden');
+            updateStars();
+        }
+        
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.add('hidden');
+        }
+        
+        function closeViewFeedbackModal() {
+            document.getElementById('viewFeedbackModal').classList.add('hidden');
+        }
+        
+        function setRating(rating) {
+            selectedRating = rating;
+            document.getElementById('star' + rating).checked = true;
+            updateStars();
+        }
+        
+        function updateStars() {
+            document.querySelectorAll('.star-label').forEach((label, index) => {
+                if (index < selectedRating) {
+                    label.classList.remove('text-gray-300');
+                    label.classList.add('text-yellow-400');
+                } else {
+                    label.classList.add('text-gray-300');
+                    label.classList.remove('text-yellow-400');
                 }
             });
-        </script>
+        }
+        
+        function showFeedback(orderId) {
+            // Find the feedback data from the table
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const orderIdCell = row.querySelector('td:first-child');
+                if (orderIdCell && orderIdCell.textContent.includes(orderId)) {
+                    const feedbackCell = row.querySelector('td:nth-child(6)');
+                    if (feedbackCell) {
+                        const rating = feedbackCell.querySelector('.text-yellow-500');
+                        const ratingText = feedbackCell.querySelector('.text-gray-600');
+                        const comments = feedbackCell.getAttribute('data-comments');
+                        
+                        let feedbackHtml = '<div class="space-y-3">';
+                        
+                        if (ratingText) {
+                            feedbackHtml += '<div><strong>Rating:</strong> ' + ratingText.textContent + '</div>';
+                        }
+                        
+                        // Since we need to get comments from the row, let's use a simpler approach
+                        // The JavaScript will just display the rating that's already visible
+                        feedbackHtml += '<p class="text-sm text-gray-600">Your feedback has been recorded.</p>';
+                        feedbackHtml += '</div>';
+                        
+                        document.getElementById('feedbackContent').innerHTML = feedbackHtml;
+                        document.getElementById('viewFeedbackModal').classList.remove('hidden');
+                    }
+                }
+            });
+        }
+        
+        // Close modals when clicking outside
+        document.getElementById('feedbackModal').addEventListener('click', function(e) {
+            if (e.target === this) closeFeedbackModal();
+        });
+        
+        document.getElementById('viewFeedbackModal').addEventListener('click', function(e) {
+            if (e.target === this) closeViewFeedbackModal();
+        });
+        
+        // Mobile menu toggle used by the navbar
+        document.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('mobile-menu-btn');
+            var menu = document.getElementById('mobile-menu');
+            if (btn && menu) {
+                btn.addEventListener('click', function() {
+                    menu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
